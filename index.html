@@ -2,31 +2,34 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Panda Royale Score Board</title>
+    <title>Panda Royale Scoreboard</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a3a16; display: flex; justify-content: center; padding: 20px; color: #333; }
-        .card { background: #fdfdfd; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 950px; overflow-x: auto; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a3a16; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 15px; width: 100%; max-width: 1100px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h1 { text-align: center; color: #2d5a27; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { background: #2d5a27; color: white; padding: 12px; font-size: 0.85em; text-transform: uppercase; }
-        td { border-bottom: 1px solid #ddd; padding: 10px; text-align: center; }
-        .row-label { font-weight: bold; background: #f0f4f0; width: 90px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { color: white; padding: 10px; font-size: 0.7em; text-transform: uppercase; background: #2d5a27; border: 1px solid white; }
+        td { border: 1px solid #eee; padding: 8px; text-align: center; }
         
-        /* Spaltenfarben */
-        .col-gelb { background: #fff9c4; } 
+        /* Farb-Anpassungen */
+        .col-runde { background: #2d5a27; color: white; font-weight: bold; }
+        .col-gelb { background: #fffde7; } 
         .col-lila { background: #f3e5f5; }
         .col-blau { background: #e3f2fd; } 
-        .col-rot { background: #ffebee; }
-        .col-gruen { background: #e8f5e9; } 
-        .col-total { background: #2d5a27; color: white; font-weight: bold; }
+        .col-rot { background: #ffcdd2; border: 2px solid #e57373 !important; } /* Kräftiges Rot */
+        .col-weiss { background: #ffffff; border: 1px solid #ddd !important; }
+        .col-pink { background: #fce4ec; }
+        .col-total { background: #1a3a16; color: #a5d6a7; font-weight: bold; width: 60px; }
 
-        input { width: 45px; padding: 6px; border: 1px solid #bbb; border-radius: 4px; text-align: center; font-weight: bold; }
-        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; vertical-align: middle; }
+        input { width: 40px; height: 30px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight: bold; }
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; vertical-align: middle; }
         
-        .red-inputs { display: flex; gap: 4px; justify-content: center; align-items: center; }
-        .red-inputs div { display: flex; flex-direction: column; font-size: 10px; color: #777; }
+        /* Rote Spalte Eingabefelder */
+        .red-grid { display: flex; gap: 3px; justify-content: center; font-size: 9px; color: #b71c1c; }
+        .red-grid div { display: flex; flex-direction: column; align-items: center; }
+        .red-grid input { border: 1px solid #e57373; background: #fff; }
 
-        .grand-total-display { margin-top: 25px; text-align: right; font-size: 2em; font-weight: bold; color: #2d5a27; border-top: 4px double #2d5a27; padding-top: 15px; }
+        .footer { margin-top: 20px; border-top: 3px solid #2d5a27; padding-top: 15px; text-align: right; font-size: 2em; font-weight: bold; color: #1a3a16; }
     </style>
 </head>
 <body>
@@ -37,65 +40,65 @@
                 <tr>
                     <th>Runde</th>
                     <th class="col-gelb">Gelb (Σ)</th>
-                    <th class="col-lila">Lila (Σ)<br><small>Auto x2</small></th>
-                    <th class="col-blau">Blau (Σ)<br><small>Glitzer? ✨</small></th>
-                    <th class="col-rot">Rot<br><small>(W - S) x Anz</small></th>
-                    <th class="col-gruen">Grün (Σ)</th>
+                    <th class="col-lila">Lila (Σ)<br>Auto x2</th>
+                    <th class="col-blau">Blau (Σ)<br>Glitzer? ✨</th>
+                    <th class="col-rot">Rot (W-S)xAnz</th>
+                    <th class="col-weiss">Weiß (Σ)</th>
+                    <th class="col-pink">Pink (Σ)</th>
                     <th class="col-total">Runde</th>
                 </tr>
             </thead>
-            <tbody id="gameBoard"></tbody>
+            <tbody id="board"></tbody>
         </table>
-        <div class="grand-total-display">
-            Gesamt: <span id="grandTotal">0</span>
-        </div>
+        <div class="footer">Gesamt: <span id="grandTotal">0</span></div>
     </div>
 
     <script>
-        const board = document.getElementById('gameBoard');
+        const board = document.getElementById('board');
         for (let r = 1; r <= 10; r++) {
             board.innerHTML += `
                 <tr id="r-${r}">
-                    <td class="row-label">Runde ${r}</td>
-                    <td class="col-gelb"><input type="number" class="val-y" oninput="upd(${r})"></td>
-                    <td class="col-lila"><input type="number" class="val-p" oninput="upd(${r})"></td>
+                    <td class="col-runde">Runde ${r}</td>
+                    <td class="col-gelb"><input type="number" class="v-y" oninput="c(${r})"></td>
+                    <td class="col-lila"><input type="number" class="v-p" oninput="c(${r})"></td>
                     <td class="col-blau">
-                        <input type="number" class="val-b" oninput="upd(${r})">
-                        <input type="checkbox" class="chk-glit" onchange="upd(${r})">
+                        <input type="number" class="v-b" oninput="c(${r})">
+                        <input type="checkbox" class="v-bg" onchange="c(${r})">
                     </td>
                     <td class="col-rot">
-                        <div class="red-inputs">
-                            <div><span>Weiß</span><input type="number" class="rW" oninput="upd(${r})"></div>
-                            <div><span>Schwarz</span><input type="number" class="rS" oninput="upd(${r})"></div>
-                            <div><span>Anz.</span><input type="number" class="rA" oninput="upd(${r})"></div>
+                        <div class="red-grid">
+                            <div><span>W</span><input type="number" class="rW" oninput="c(${r})"></div>
+                            <div><span>S</span><input type="number" class="rS" oninput="c(${r})"></div>
+                            <div><span>#</span><input type="number" class="rA" oninput="c(${r})"></div>
                         </div>
                     </td>
-                    <td class="col-gruen"><input type="number" class="val-g" oninput="upd(${r})"></td>
-                    <td class="col-total"><span id="sum-${r}">0</span></td>
+                    <td class="col-weiss"><input type="number" class="v-w" oninput="c(${r})"></td>
+                    <td class="col-pink"><input type="number" class="v-pi" oninput="c(${r})"></td>
+                    <td class="col-total"><span id="s-${r}">0</span></td>
                 </tr>`;
         }
 
-        function upd(r) {
+        function c(r) {
             const row = document.getElementById(`r-${r}`);
-            const y = Number(row.querySelector('.val-y').value) || 0;
-            const p = (Number(row.querySelector('.val-p').value) || 0) * 2;
-            
-            let b = Number(row.querySelector('.val-b').value) || 0;
-            if(row.querySelector('.chk-glit').checked) b *= 2;
+            const y = Number(row.querySelector('.v-y').value) || 0;
+            const p = (Number(row.querySelector('.v-p').value) || 0) * 2;
+            let b = Number(row.querySelector('.v-b').value) || 0;
+            if(row.querySelector('.v-bg').checked) b *= 2;
             
             const rW = Number(row.querySelector('.rW').value) || 0;
             const rS = Number(row.querySelector('.rS').value) || 0;
             const rA = Number(row.querySelector('.rA').value) || 0;
             const red = (rW - rS) * rA;
             
-            const g = Number(row.querySelector('.val-g').value) || 0;
+            const w = Number(row.querySelector('.v-w').value) || 0;
+            const pi = Number(row.querySelector('.v-pi').value) || 0;
             
-            const total = y + p + b + red + g;
-            document.getElementById(`sum-${r}`).innerText = total;
+            const total = y + p + b + red + w + pi;
+            document.getElementById(`s-${r}`).innerText = total;
             
-            let final = 0;
-            for(let i=1; i<=10; i++) final += Number(document.getElementById(`sum-${i}`).innerText) || 0;
-            document.getElementById('grandTotal').innerText = final;
+            let g = 0;
+            for(let i=1; i<=10; i++) g += Number(document.getElementById(`s-${i}`).innerText) || 0;
+            document.getElementById('grandTotal').innerText = g;
         }
     </script>
 </body>
