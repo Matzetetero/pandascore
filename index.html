@@ -2,53 +2,105 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Panda Royale 10-Runden Rechner</title>
+    <title>Panda Royale Profi-Rechner</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f4; padding: 20px; }
-        .container { background: white; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background: #2d5a27; color: white; }
-        input { width: 50px; border: 1px solid #ccc; padding: 4px; text-align: center; }
-        .total-row { font-weight: bold; background: #e8f5e9; }
+        body { font-family: 'Segoe UI', sans-serif; background: #2d5a27; display: flex; justify-content: center; padding: 20px; color: #333; }
+        .card { background: #fdfdfd; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 95%; max-width: 900px; overflow-x: auto; }
+        h1 { text-align: center; color: #2d5a27; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { background: #2d5a27; color: white; padding: 10px; font-size: 0.9em; }
+        td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
+        .row-label { font-weight: bold; background: #f9f9f9; width: 80px; }
+        
+        /* Farben für die Spalten */
+        .col-gelb { background: #fff9c4; } .col-lila { background: #f3e5f5; }
+        .col-blau { background: #e3f2fd; } .col-rot { background: #ffebee; }
+        .col-gruen { background: #e8f5e9; } .col-total { background: #e0e0e0; font-weight: bold; }
+
+        input { width: 40px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 14px; }
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .red-box { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+        .red-box span { font-size: 10px; color: #666; }
+        
+        .grand-total-section { margin-top: 20px; text-align: right; font-size: 1.5em; font-weight: bold; color: #2d5a27; padding: 10px; border-top: 3px solid #2d5a27; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="card">
         <h1>Panda Royale 🐼</h1>
         <table>
             <thead>
                 <tr>
                     <th>Runde</th>
-                    <th>Punkte</th>
+                    <th class="col-gelb">Gelb (Σ)</th>
+                    <th class="col-lila">Lila (Σ) <br><small>x2 Auto</small></th>
+                    <th class="col-blau">Blau (Σ) <br><small>Glitzer? ✨</small></th>
+                    <th class="col-rot">Rot <br><small>(W - S) x Anz</small></th>
+                    <th class="col-gruen">Grün/Andere (Σ)</th>
+                    <th class="col-total">Runden-Pkt</th>
                 </tr>
             </thead>
-            <tbody id="rounds">
-                <!-- Erzeugt 10 Zeilen -->
+            <tbody id="gameBody">
+                <!-- Runden werden per JS eingefügt -->
             </tbody>
-            <tfoot>
-                <tr class="total-row">
-                    <td>Gesamt:</td>
-                    <td id="grandTotal">0</td>
-                </tr>
-            </tfoot>
         </table>
+        <div class="grand-total-section">
+            Gesamtpunkte Spiel: <span id="grandTotal">0</span>
+        </div>
     </div>
 
     <script>
-        const tbody = document.getElementById('rounds');
-        for (let i = 1; i <= 10; i++) {
-            tbody.innerHTML += `<tr><td>Runde ${i}</td><td><input type="number" class="score" oninput="sumTotal()"></td></tr>`;
+        const tbody = document.getElementById('gameBody');
+        for (let r = 1; r <= 10; r++) {
+            tbody.innerHTML += `
+                <tr id="row-${r}">
+                    <td class="row-label">Runde ${r}</td>
+                    <td class="col-gelb"><input type="number" class="y" oninput="calc(${r})"></td>
+                    <td class="col-lila"><input type="number" class="p" oninput="calc(${r})"></td>
+                    <td class="col-blau">
+                        <input type="number" class="b" oninput="calc(${r})"><br>
+                        <input type="checkbox" class="glit" onchange="calc(${r})">
+                    </td>
+                    <td class="col-rot">
+                        <div class="red-box">
+                            <input type="number" class="rW" placeholder="W" oninput="calc(${r})">
+                            <input type="number" class="rS" placeholder="S" oninput="calc(${r})">
+                            <input type="number" class="rA" placeholder="#" oninput="calc(${r})">
+                        </div>
+                    </td>
+                    <td class="col-gruen"><input type="number" class="g" oninput="calc(${r})"></td>
+                    <td class="col-total"><span id="total-${r}">0</span></td>
+                </tr>`;
         }
 
-        function sumTotal() {
+        function calc(r) {
+            const row = document.getElementById(`row-${r}`);
+            const y = Number(row.querySelector('.y').value) || 0;
+            const p = (Number(row.querySelector('.p').value) || 0) * 2; // Automatisch verdoppelt
+            
+            let b = Number(row.querySelector('.b').value) || 0;
+            if(row.querySelector('.glit').checked) b *= 2; // Blau Glitzer-Check
+            
+            const rW = Number(row.querySelector('.rW').value) || 0;
+            const rS = Number(row.querySelector('.rS').value) || 0;
+            const rA = Number(row.querySelector('.rA').value) || 0;
+            const redTotal = (rW - rS) * rA; // Rot-Logik
+            
+            const g = Number(row.querySelector('.g').value) || 0;
+            
+            const roundSum = y + p + b + redTotal + g;
+            document.getElementById(`total-${r}`).innerText = roundSum;
+            
+            updateGrandTotal();
+        }
+
+        function updateGrandTotal() {
             let total = 0;
-            document.querySelectorAll('.score').forEach(input => {
-                total += Number(input.value) || 0;
-            });
+            for (let i = 1; i <= 10; i++) {
+                total += Number(document.getElementById(`total-${i}`).innerText) || 0;
+            }
             document.getElementById('grandTotal').innerText = total;
         }
     </script>
 </body>
 </html>
-
