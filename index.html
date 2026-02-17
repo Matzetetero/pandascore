@@ -2,46 +2,53 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Panda Royale Score Calculator</title>
+    <title>Panda Royale 10-Runden Rechner</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f0; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h1 { color: #2d5a27; text-align: center; }
-        .row { display: flex; align-items: center; margin-bottom: 10px; padding: 10px; border-radius: 8px; }
-        .row label { flex: 1; font-weight: bold; }
-        .row input { width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
-        /* Farben passend zum Spiel */
-        .yellow { background: #fff9c4; } .purple { background: #e1bee7; } .blue { background: #bbdefb; }
-        .red { background: #ffcdd2; } .green { background: #c8e6c9; } .total-box { background: #2d5a27; color: white; margin-top: 20px; }
+        body { font-family: sans-serif; background: #f4f7f4; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #2d5a27; color: white; }
+        input { width: 50px; border: 1px solid #ccc; padding: 4px; text-align: center; }
+        .total-row { font-weight: bold; background: #e8f5e9; }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="container">
         <h1>Panda Royale 🐼</h1>
-        <div class="row yellow"><label>Gelb (Summe):</label><input type="number" id="y" oninput="calc()"></div>
-        <div class="row purple"><label>Lila (Summe x 2):</label><input type="number" id="p" oninput="calc()"></div>
-        <div class="row blue"><label>Blau (Summe):</label><input type="number" id="b" oninput="calc()">
-            <input type="checkbox" id="glitter" onchange="calc()"> ✨</div>
-        <div class="row red"><label>Rot (Netto x Anzahl):</label><input type="number" id="r" oninput="calc()"></div>
-        <div class="row green"><label>Grün (Summe):</label><input type="number" id="g" oninput="calc()"></div>
-        
-        <div class="row total-box">
-            <label>Runden-Gesamtpunktzahl:</label>
-            <span id="result">0</span>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Runde</th>
+                    <th>Punkte</th>
+                </tr>
+            </thead>
+            <tbody id="rounds">
+                <!-- Erzeugt 10 Zeilen -->
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td>Gesamt:</td>
+                    <td id="grandTotal">0</td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
 
     <script>
-        function calc() {
-            let y = Number(document.getElementById('y').value) || 0;
-            let p = (Number(document.getElementById('p').value) || 0) * 2;
-            let b = Number(document.getElementById('b').value) || 0;
-            if(document.getElementById('glitter').checked) b *= 2;
-            let r = Number(document.getElementById('r').value) || 0; // Vereinfacht für das Tool
-            let g = Number(document.getElementById('g').value) || 0;
-            
-            document.getElementById('result').innerText = y + p + b + r + g;
+        const tbody = document.getElementById('rounds');
+        for (let i = 1; i <= 10; i++) {
+            tbody.innerHTML += `<tr><td>Runde ${i}</td><td><input type="number" class="score" oninput="sumTotal()"></td></tr>`;
+        }
+
+        function sumTotal() {
+            let total = 0;
+            document.querySelectorAll('.score').forEach(input => {
+                total += Number(input.value) || 0;
+            });
+            document.getElementById('grandTotal').innerText = total;
         }
     </script>
 </body>
 </html>
+
