@@ -5,50 +5,55 @@
     <title>Panda Royale Scoreboard</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a3a16; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 15px; width: 100%; max-width: 1100px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
-        h1 { text-align: center; color: #2d5a27; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { color: white; padding: 10px; font-size: 0.7em; text-transform: uppercase; background: #2d5a27; border: 1px solid white; }
+        .card { background: white; padding: 25px; border-radius: 15px; width: 100%; max-width: 1100px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { color: #2d5a27; margin: 0; flex-grow: 1; text-align: center; margin-left: 100px; }
+        
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { color: white; padding: 8px; font-size: 0.75em; text-transform: uppercase; background: #2d5a27; border: 1px solid white; overflow: hidden; }
         td { border: 1px solid #eee; padding: 8px; text-align: center; }
         
-        .col-runde { background: #2d5a27; color: white; font-weight: bold; }
+        .col-runde { background: #2d5a27; color: white; font-weight: bold; width: 80px; }
         .col-gelb { background: #fce903; } 
         .col-lila { background: #f3e5f5; }
         .col-blau { background: #e3f2fd; } 
         .col-rot { background: #ffcdd2; border: 2px solid #e57373 !important; }
         .col-weiss { background: #ffffff; border: 1px solid #ddd !important; }
         .col-pink { background: #fce4ec; }
-        .col-total { background: #1a3a16; color: #a5d6a7; font-weight: bold; width: 60px; }
+        .col-total { background: #1a3a16; color: #a5d6a7; font-weight: bold; width: 70px; }
 
-        input { width: 40px; height: 30px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight: bold; }
-        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; vertical-align: middle; }
+        input { width: 45px; height: 35px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight: bold; font-size: 1.1em; }
+        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
         
-        .red-grid { display: flex; gap: 3px; justify-content: center; font-size: 9px; color: #b71c1c; }
+        .red-grid { display: flex; gap: 4px; justify-content: center; font-size: 10px; color: #b71c1c; }
         .red-grid div { display: flex; flex-direction: column; align-items: center; }
-        .red-grid input { border: 1px solid #e57373; background: #fff; }
+        .red-grid input { width: 30px; height: 25px; font-size: 0.9em; border: 1px solid #e57373; }
 
-        .footer { margin-top: 20px; border-top: 3px solid #2d5a27; padding-top: 15px; text-align: right; font-size: 2em; font-weight: bold; color: #1a3a16; }
+        .footer { margin-top: 20px; border-top: 3px solid #2d5a27; padding-top: 15px; text-align: right; font-size: 2.2em; font-weight: bold; color: #1a3a16; }
         
-        /* Reset Button */
-        .reset-btn { position: absolute; top: 20px; right: 20px; padding: 12px 20px; background: #d32f2f; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .reset-btn:hover { background: #b71c1c; }
+        .reset-btn { padding: 10px 20px; background: #d32f2f; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .reset-btn:hover { background: #b71c1c; transform: scale(1.05); }
     </style>
 </head>
 <body>
     <div class="card">
-        <button class="reset-btn" onclick="resetBoard()">Tabelle leeren ↺</button>
-        <h1>Panda Royale 🐼</h1>
+        <div class="header-area">
+            <h1>Panda Royale 🐼</h1>
+            <button class="reset-btn" onclick="resetBoard()">Reset ↺</button>
+        </div>
+        
         <table>
             <thead>
                 <tr>
-                    <th>Runde</th>
+                    <th style="width: 100px;">Runde</th>
                     <th class="col-gelb">Gelb (Σ)</th>
                     <th class="col-lila">Lila (Σ)<br>Auto x2</th>
                     <th class="col-blau">Blau (Σ)<br>Glitzer? ✨</th>
                     <th class="col-rot">Rot (W-S)xAnz</th>
                     <th class="col-weiss">Weiß (Σ)</th>
                     <th class="col-pink">Pink (Σ)</th>
-                    <th class="col-total">Runde</th>
+                    <th class="col-total">Summe</th>
                 </tr>
             </thead>
             <tbody id="board"></tbody>
@@ -57,38 +62,37 @@
     </div>
 
     <script>
-        // 1. Tabelle initialisieren
+        // 1. Tabelle beim Laden sofort aufbauen
         const board = document.getElementById('board');
-        let html = "";
+        let rowsHtml = "";
         for (let r = 1; r <= 10; r++) {
-            html += `
+            rowsHtml += `
                 <tr id="r-${r}">
                     <td class="col-runde">Runde ${r}</td>
-                    <td class="col-gelb"><input type="number" class="v-y" oninput="c(${r})"></td>
-                    <td class="col-lila"><input type="number" class="v-p" oninput="c(${r})"></td>
+                    <td class="col-gelb"><input type="number" class="v-y" oninput="calculateRow(${r})"></td>
+                    <td class="col-lila"><input type="number" class="v-p" oninput="calculateRow(${r})"></td>
                     <td class="col-blau">
-                        <input type="number" class="v-b" oninput="c(${r})">
-                        <input type="checkbox" class="v-bg" onchange="c(${r})">
+                        <input type="number" class="v-b" oninput="calculateRow(${r})">
+                        <input type="checkbox" class="v-bg" onchange="calculateRow(${r})">
                     </td>
                     <td class="col-rot">
                         <div class="red-grid">
-                            <div><span>W</span><input type="number" class="rW" oninput="c(${r})"></div>
-                            <div><span>S</span><input type="number" class="rS" oninput="c(${r})"></div>
-                            <div><span>#</span><input type="number" class="rA" oninput="c(${r})"></div>
+                            <div><span>W</span><input type="number" class="rW" oninput="calculateRow(${r})"></div>
+                            <div><span>S</span><input type="number" class="rS" oninput="calculateRow(${r})"></div>
+                            <div><span>#</span><input type="number" class="rA" oninput="calculateRow(${r})"></div>
                         </div>
                     </td>
-                    <td class="col-weiss"><input type="number" class="v-w" oninput="c(${r})"></td>
-                    <td class="col-pink"><input type="number" class="v-pi" oninput="c(${r})"></td>
+                    <td class="col-weiss"><input type="number" class="v-w" oninput="calculateRow(${r})"></td>
+                    <td class="col-pink"><input type="number" class="v-pi" oninput="calculateRow(${r})"></td>
                     <td class="col-total"><span id="s-${r}">0</span></td>
                 </tr>`;
         }
-        board.innerHTML = html;
+        board.innerHTML = rowsHtml;
 
-        // Berechnung & Speicherung
-        function c(r) {
+        // 2. Kernfunktionen
+        function calculateRow(r) {
             const row = document.getElementById(`r-${r}`);
-            if (!row) return;
-
+            
             const y = Number(row.querySelector('.v-y').value) || 0;
             const p = (Number(row.querySelector('.v-p').value) || 0) * 2;
             let b = Number(row.querySelector('.v-b').value) || 0;
@@ -106,56 +110,54 @@
             document.getElementById(`s-${r}`).innerText = total;
             
             updateGrandTotal();
-            saveAll();
+            saveToStorage();
         }
 
         function updateGrandTotal() {
             let g = 0;
             for(let i=1; i<=10; i++) {
-                const val = document.getElementById(`s-${i}`);
-                if (val) g += Number(val.innerText) || 0;
+                g += Number(document.getElementById(`s-${i}`).innerText) || 0;
             }
             document.getElementById('grandTotal').innerText = g;
         }
 
-        function saveAll() {
-            const inputs = document.querySelectorAll('input');
-            const data = Array.from(inputs).map(el => ({
-                val: el.value,
-                checked: el.checked,
-                type: el.type
-            }));
-            localStorage.setItem('pandaScores', JSON.stringify(data));
+        function saveToStorage() {
+            const allInputs = document.querySelectorAll('input');
+            const data = Array.from(allInputs).map(input => {
+                return input.type === 'checkbox' ? input.checked : input.value;
+            });
+            localStorage.setItem('pandaData', JSON.stringify(data));
         }
 
-        function loadAll() {
-            const saved = localStorage.getItem('pandaScores');
+        function loadFromStorage() {
+            const saved = localStorage.getItem('pandaData');
             if (saved) {
                 const data = JSON.parse(saved);
-                const inputs = document.querySelectorAll('input');
-                data.forEach((item, index) => {
-                    if (inputs[index]) {
-                        if (item.type === 'checkbox') inputs[index].checked = item.checked;
-                        else inputs[index].value = item.val;
+                const allInputs = document.querySelectorAll('input');
+                data.forEach((value, index) => {
+                    if (allInputs[index]) {
+                        if (allInputs[index].type === 'checkbox') allInputs[index].checked = value;
+                        else allInputs[index].value = value;
                     }
                 });
-                for (let i = 1; i <= 10; i++) c(i);
+                // Nach dem Laden alle Zeilen einmal durchrechnen
+                for (let i = 1; i <= 10; i++) calculateRow(i);
             }
         }
 
         function resetBoard() {
-            if (confirm("Wirklich alles löschen?")) {
-                localStorage.removeItem('pandaScores');
-                document.querySelectorAll('input').forEach(el => {
-                    el.value = "";
-                    el.checked = false;
+            if (confirm("Möchtest du wirklich alle eingetragenen Punkte löschen?")) {
+                localStorage.removeItem('pandaData');
+                document.querySelectorAll('input').forEach(input => {
+                    if (input.type === 'checkbox') input.checked = false;
+                    else input.value = "";
                 });
-                for (let i = 1; i <= 10; i++) c(i);
+                for (let i = 1; i <= 10; i++) calculateRow(i);
             }
         }
 
-        // Sicherstellen, dass alles geladen ist
-        document.addEventListener('DOMContentLoaded', loadAll);
+        // 3. Start-Befehl
+        window.onload = loadFromStorage;
     </script>
 </body>
 </html>
