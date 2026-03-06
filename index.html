@@ -29,14 +29,14 @@
 
         .footer { margin-top: 20px; border-top: 3px solid #2d5a27; padding-top: 15px; text-align: right; font-size: 2em; font-weight: bold; color: #1a3a16; }
         
-        /* Reset Button Styling */
-        .reset-btn { position: absolute; top: 20px; right: 20px; padding: 10px 15px; background: #e57373; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        /* Reset Button */
+        .reset-btn { position: absolute; top: 20px; right: 20px; padding: 12px 20px; background: #d32f2f; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
         .reset-btn:hover { background: #b71c1c; }
     </style>
 </head>
 <body>
     <div class="card">
-        <button class="reset-btn" onclick="resetBoard()">Reset ↺</button>
+        <button class="reset-btn" onclick="resetBoard()">Tabelle leeren ↺</button>
         <h1>Panda Royale 🐼</h1>
         <table>
             <thead>
@@ -57,11 +57,11 @@
     </div>
 
     <script>
+        // 1. Tabelle initialisieren
         const board = document.getElementById('board');
-        
-        // 1. Tabelle generieren
+        let html = "";
         for (let r = 1; r <= 10; r++) {
-            board.innerHTML += `
+            html += `
                 <tr id="r-${r}">
                     <td class="col-runde">Runde ${r}</td>
                     <td class="col-gelb"><input type="number" class="v-y" oninput="c(${r})"></td>
@@ -82,41 +82,13 @@
                     <td class="col-total"><span id="s-${r}">0</span></td>
                 </tr>`;
         }
+        board.innerHTML = html;
 
-        // 2. Speicher-Logik
-        function saveAll() {
-            const data = {};
-            document.querySelectorAll('input').forEach((el, index) => {
-                data[index] = el.type === 'checkbox' ? el.checked : el.value;
-            });
-            localStorage.setItem('pandaRoyaleScores', JSON.stringify(data));
-        }
-
-        function loadAll() {
-            const saved = localStorage.getItem('pandaRoyaleScores');
-            if (saved) {
-                const data = JSON.parse(saved);
-                document.querySelectorAll('input').forEach((el, index) => {
-                    if (el.type === 'checkbox') el.checked = data[index];
-                    else el.value = data[index] || "";
-                });
-                for (let i = 1; i <= 10; i++) c(i);
-            }
-        }
-
-        function resetBoard() {
-            if (confirm("Möchtest du wirklich alle Scores löschen?")) {
-                localStorage.removeItem('pandaRoyaleScores');
-                document.querySelectorAll('input').forEach(el => {
-                    if (el.type === 'checkbox') el.checked = false;
-                    else el.value = "";
-                });
-                for (let i = 1; i <= 10; i++) c(i);
-            }
-        }
-
+        // Berechnung & Speicherung
         function c(r) {
             const row = document.getElementById(`r-${r}`);
+            if (!row) return;
+
             const y = Number(row.querySelector('.v-y').value) || 0;
             const p = (Number(row.querySelector('.v-p').value) || 0) * 2;
             let b = Number(row.querySelector('.v-b').value) || 0;
@@ -133,15 +105,57 @@
             const total = y + p + b + red + w + pi;
             document.getElementById(`s-${r}`).innerText = total;
             
-            let g = 0;
-            for(let i=1; i<=10; i++) g += Number(document.getElementById(`s-${i}`).innerText) || 0;
-            document.getElementById('grandTotal').innerText = g;
-            
+            updateGrandTotal();
             saveAll();
         }
 
-        // Beim Laden der Seite Daten wiederherstellen
-        window.onload = loadAll;
+        function updateGrandTotal() {
+            let g = 0;
+            for(let i=1; i<=10; i++) {
+                const val = document.getElementById(`s-${i}`);
+                if (val) g += Number(val.innerText) || 0;
+            }
+            document.getElementById('grandTotal').innerText = g;
+        }
+
+        function saveAll() {
+            const inputs = document.querySelectorAll('input');
+            const data = Array.from(inputs).map(el => ({
+                val: el.value,
+                checked: el.checked,
+                type: el.type
+            }));
+            localStorage.setItem('pandaScores', JSON.stringify(data));
+        }
+
+        function loadAll() {
+            const saved = localStorage.getItem('pandaScores');
+            if (saved) {
+                const data = JSON.parse(saved);
+                const inputs = document.querySelectorAll('input');
+                data.forEach((item, index) => {
+                    if (inputs[index]) {
+                        if (item.type === 'checkbox') inputs[index].checked = item.checked;
+                        else inputs[index].value = item.val;
+                    }
+                });
+                for (let i = 1; i <= 10; i++) c(i);
+            }
+        }
+
+        function resetBoard() {
+            if (confirm("Wirklich alles löschen?")) {
+                localStorage.removeItem('pandaScores');
+                document.querySelectorAll('input').forEach(el => {
+                    el.value = "";
+                    el.checked = false;
+                });
+                for (let i = 1; i <= 10; i++) c(i);
+            }
+        }
+
+        // Sicherstellen, dass alles geladen ist
+        document.addEventListener('DOMContentLoaded', loadAll);
     </script>
 </body>
 </html>
